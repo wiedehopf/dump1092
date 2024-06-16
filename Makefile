@@ -15,9 +15,10 @@ EXTRACFLAGS=-DHTMLPATH=\"$(SHAREDIR)\"
 endif
 
 CPPFLAGS+=-DMODES_DUMP1090_VERSION=\"$(DUMP1090_VERSION)\"
-CFLAGS+=-O2 -g -Wall -Werror -W
-LIBS=-lpthread -lm
-LIBS_RTL=`pkg-config --libs librtlsdr libusb-1.0`
+CFLAGS+=-std=c11 -D_GNU_SOURCE -D_DEFAULT_SOURCE -g -Wall -W -fno-common -O2 $(shell pkg-config --cflags librtlsdr)
+CFLAGS+=-Wdate-time -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2
+LIBS=-pthread -lpthread -lm
+LIBS_RTL= $(shell pkg-config --libs librtlsdr libusb-1.0)
 CC=gcc
 
 UNAME := $(shell uname)
@@ -41,16 +42,14 @@ all: dump1090 view1090
 %.o: %.c *.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(EXTRACFLAGS) -c $< -o $@
 
-dump1090.o: CFLAGS += `pkg-config --cflags librtlsdr`
-
 dump1090: dump1090.o anet.o interactive.o mode_ac.o mode_s.o net_io.o crc.o demod_2000.o demod_2400.o stats.o cpr.o icao_filter.o track.o util.o convert.o $(COMPAT)
-	$(CC) -g -o $@ $^ $(LIBS) $(LIBS_RTL) $(LDFLAGS)
+	$(CC) -o $@ $^ $(LIBS) $(LIBS_RTL) $(LDFLAGS)
 
 view1090: view1090.o anet.o interactive.o mode_ac.o mode_s.o net_io.o crc.o stats.o cpr.o icao_filter.o track.o util.o $(COMPAT)
-	$(CC) -g -o $@ $^ $(LIBS) $(LDFLAGS)
+	$(CC) -o $@ $^ $(LIBS) $(LDFLAGS)
 
 faup1090: faup1090.o anet.o mode_ac.o mode_s.o net_io.o crc.o stats.o cpr.o icao_filter.o track.o util.o $(COMPAT)
-	$(CC) -g -o $@ $^ $(LIBS) $(LDFLAGS)
+	$(CC) -o $@ $^ $(LIBS) $(LDFLAGS)
 
 clean:
 	rm -f *.o compat/clock_gettime/*.o compat/clock_nanosleep/*.o dump1090 view1090 faup1090 cprtests crctests
@@ -59,7 +58,7 @@ test: cprtests
 	./cprtests
 
 cprtests: cpr.o cprtests.o
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(EXTRACFLAGS) -g -o $@ $^ -lm
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(EXTRACFLAGS) -o $@ $^ -lm
 
 crctests: crc.c crc.h
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(EXTRACFLAGS) -g -DCRCDEBUG -o $@ $<
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(EXTRACFLAGS) -DCRCDEBUG -o $@ $<

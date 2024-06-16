@@ -53,6 +53,8 @@
 
 #include <stdarg.h>
 
+struct _Modes Modes;
+
 static int verbose_device_search(char *s);
 
 //

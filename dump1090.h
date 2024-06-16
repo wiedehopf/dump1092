@@ -231,7 +231,8 @@ struct mag_buf {
 };
 
 // Program global state
-struct {                             // Internal state
+struct _Modes
+{                             // Internal state
     pthread_t       reader_thread;
 
     pthread_mutex_t data_mutex;      // Mutex to synchronize buffer access
@@ -342,7 +343,9 @@ struct {                             // Internal state
     int stats_latest_1min;
     struct stats stats_5min;
     struct stats stats_15min;
-} Modes;
+};
+
+extern struct _Modes Modes;
 
 // The struct we use to store information about a decoded message.
 struct modesMessage {
